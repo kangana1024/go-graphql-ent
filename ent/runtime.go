@@ -5,6 +5,7 @@ package ent
 import (
 	"time"
 
+	"github.com/kangana1024/go-graphql-ent/ent/article"
 	"github.com/kangana1024/go-graphql-ent/ent/schema"
 	"github.com/kangana1024/go-graphql-ent/ent/user"
 )
@@ -13,6 +14,20 @@ import (
 // (default values, validators, hooks and policies) and stitches it
 // to their package variables.
 func init() {
+	articleFields := schema.Article{}.Fields()
+	_ = articleFields
+	// articleDescTitle is the schema descriptor for title field.
+	articleDescTitle := articleFields[0].Descriptor()
+	// article.DefaultTitle holds the default value on creation for the title field.
+	article.DefaultTitle = articleDescTitle.Default.(string)
+	// articleDescDescription is the schema descriptor for description field.
+	articleDescDescription := articleFields[1].Descriptor()
+	// article.DefaultDescription holds the default value on creation for the description field.
+	article.DefaultDescription = articleDescDescription.Default.(string)
+	// articleDescContent is the schema descriptor for content field.
+	articleDescContent := articleFields[2].Descriptor()
+	// article.DefaultContent holds the default value on creation for the content field.
+	article.DefaultContent = articleDescContent.Default.(*schema.ArticleContent)
 	userFields := schema.User{}.Fields()
 	_ = userFields
 	// userDescFirstname is the schema descriptor for firstname field.
@@ -21,24 +36,30 @@ func init() {
 	user.DefaultFirstname = userDescFirstname.Default.(string)
 	// user.FirstnameValidator is a validator for the "firstname" field. It is called by the builders before save.
 	user.FirstnameValidator = userDescFirstname.Validators[0].(func(string) error)
+	// userDescPassword is the schema descriptor for password field.
+	userDescPassword := userFields[1].Descriptor()
+	// user.DefaultPassword holds the default value on creation for the password field.
+	user.DefaultPassword = userDescPassword.Default.(string)
+	// user.PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	user.PasswordValidator = userDescPassword.Validators[0].(func(string) error)
 	// userDescLastname is the schema descriptor for lastname field.
-	userDescLastname := userFields[1].Descriptor()
+	userDescLastname := userFields[2].Descriptor()
 	// user.DefaultLastname holds the default value on creation for the lastname field.
 	user.DefaultLastname = userDescLastname.Default.(string)
 	// user.LastnameValidator is a validator for the "lastname" field. It is called by the builders before save.
 	user.LastnameValidator = userDescLastname.Validators[0].(func(string) error)
 	// userDescUsername is the schema descriptor for username field.
-	userDescUsername := userFields[2].Descriptor()
+	userDescUsername := userFields[3].Descriptor()
 	// user.DefaultUsername holds the default value on creation for the username field.
 	user.DefaultUsername = userDescUsername.Default.(string)
 	// user.UsernameValidator is a validator for the "username" field. It is called by the builders before save.
 	user.UsernameValidator = userDescUsername.Validators[0].(func(string) error)
 	// userDescCreatedAt is the schema descriptor for created_at field.
-	userDescCreatedAt := userFields[4].Descriptor()
+	userDescCreatedAt := userFields[5].Descriptor()
 	// user.DefaultCreatedAt holds the default value on creation for the created_at field.
 	user.DefaultCreatedAt = userDescCreatedAt.Default.(func() time.Time)
 	// userDescUpdatedAt is the schema descriptor for updated_at field.
-	userDescUpdatedAt := userFields[5].Descriptor()
+	userDescUpdatedAt := userFields[6].Descriptor()
 	// user.DefaultUpdatedAt holds the default value on creation for the updated_at field.
 	user.DefaultUpdatedAt = userDescUpdatedAt.Default.(func() time.Time)
 }

@@ -13,6 +13,8 @@ const (
 	FieldID = "id"
 	// FieldFirstname holds the string denoting the firstname field in the database.
 	FieldFirstname = "firstname"
+	// FieldPassword holds the string denoting the password field in the database.
+	FieldPassword = "password"
 	// FieldLastname holds the string denoting the lastname field in the database.
 	FieldLastname = "lastname"
 	// FieldUsername holds the string denoting the username field in the database.
@@ -25,14 +27,24 @@ const (
 	FieldUpdatedAt = "updated_at"
 	// FieldDeletedAt holds the string denoting the deleted_at field in the database.
 	FieldDeletedAt = "deleted_at"
+	// EdgeArticles holds the string denoting the articles edge name in mutations.
+	EdgeArticles = "articles"
 	// Table holds the table name of the user in the database.
 	Table = "users"
+	// ArticlesTable is the table that holds the articles relation/edge.
+	ArticlesTable = "articles"
+	// ArticlesInverseTable is the table name for the Article entity.
+	// It exists in this package in order to avoid circular dependency with the "article" package.
+	ArticlesInverseTable = "articles"
+	// ArticlesColumn is the table column denoting the articles relation/edge.
+	ArticlesColumn = "user_id"
 )
 
 // Columns holds all SQL columns for user fields.
 var Columns = []string{
 	FieldID,
 	FieldFirstname,
+	FieldPassword,
 	FieldLastname,
 	FieldUsername,
 	FieldBirthDate,
@@ -56,6 +68,10 @@ var (
 	DefaultFirstname string
 	// FirstnameValidator is a validator for the "firstname" field. It is called by the builders before save.
 	FirstnameValidator func(string) error
+	// DefaultPassword holds the default value on creation for the "password" field.
+	DefaultPassword string
+	// PasswordValidator is a validator for the "password" field. It is called by the builders before save.
+	PasswordValidator func(string) error
 	// DefaultLastname holds the default value on creation for the "lastname" field.
 	DefaultLastname string
 	// LastnameValidator is a validator for the "lastname" field. It is called by the builders before save.

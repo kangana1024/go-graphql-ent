@@ -18,6 +18,8 @@ type User struct {
 	ID int `json:"id,omitempty"`
 	// Firstname holds the value of the "firstname" field.
 	Firstname string `json:"firstname,omitempty"`
+	// Password holds the value of the "password" field.
+	Password string `json:"password,omitempty"`
 	// Lastname holds the value of the "lastname" field.
 	Lastname string `json:"lastname,omitempty"`
 	// Username holds the value of the "username" field.
@@ -30,6 +32,31 @@ type User struct {
 	UpdatedAt time.Time `json:"updated_at,omitempty"`
 	// DeletedAt holds the value of the "deleted_at" field.
 	DeletedAt time.Time `json:"deleted_at,omitempty"`
+	// Edges holds the relations/edges for other nodes in the graph.
+	// The values are being populated by the UserQuery when eager-loading is set.
+	Edges UserEdges `json:"edges"`
+}
+
+// UserEdges holds the relations/edges for other nodes in the graph.
+type UserEdges struct {
+	// Articles holds the value of the articles edge.
+	Articles []*Article `json:"articles,omitempty"`
+	// loadedTypes holds the information for reporting if a
+	// type was loaded (or requested) in eager-loading or not.
+	loadedTypes [1]bool
+	// totalCount holds the count of the edges above.
+	totalCount [1]map[string]int
+
+	namedArticles map[string][]*Article
+}
+
+// ArticlesOrErr returns the Articles value or an error if the edge
+// was not loaded in eager-loading.
+func (e UserEdges) ArticlesOrErr() ([]*Article, error) {
+	if e.loadedTypes[0] {
+		return e.Articles, nil
+	}
+	return nil, &NotLoadedError{edge: "articles"}
 }
 
 // scanValues returns the types for scanning values from sql.Rows.
@@ -39,7 +66,7 @@ func (*User) scanValues(columns []string) ([]interface{}, error) {
 		switch columns[i] {
 		case user.FieldID:
 			values[i] = new(sql.NullInt64)
-		case user.FieldFirstname, user.FieldLastname, user.FieldUsername:
+		case user.FieldFirstname, user.FieldPassword, user.FieldLastname, user.FieldUsername:
 			values[i] = new(sql.NullString)
 		case user.FieldBirthDate, user.FieldCreatedAt, user.FieldUpdatedAt, user.FieldDeletedAt:
 			values[i] = new(sql.NullTime)
@@ -69,6 +96,12 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 				return fmt.Errorf("unexpected type %T for field firstname", values[i])
 			} else if value.Valid {
 				u.Firstname = value.String
+			}
+		case user.FieldPassword:
+			if value, ok := values[i].(*sql.NullString); !ok {
+				return fmt.Errorf("unexpected type %T for field password", values[i])
+			} else if value.Valid {
+				u.Password = value.String
 			}
 		case user.FieldLastname:
 			if value, ok := values[i].(*sql.NullString); !ok {
@@ -111,6 +144,11 @@ func (u *User) assignValues(columns []string, values []interface{}) error {
 	return nil
 }
 
+// QueryArticles queries the "articles" edge of the User entity.
+func (u *User) QueryArticles() *ArticleQuery {
+	return (&UserClient{config: u.config}).QueryArticles(u)
+}
+
 // Update returns a builder for updating this User.
 // Note that you need to call User.Unwrap() before calling this method if this User
 // was returned from a transaction, and the transaction was committed or rolled back.
@@ -137,6 +175,9 @@ func (u *User) String() string {
 	builder.WriteString("firstname=")
 	builder.WriteString(u.Firstname)
 	builder.WriteString(", ")
+	builder.WriteString("password=")
+	builder.WriteString(u.Password)
+	builder.WriteString(", ")
 	builder.WriteString("lastname=")
 	builder.WriteString(u.Lastname)
 	builder.WriteString(", ")
@@ -156,6 +197,30 @@ func (u *User) String() string {
 	builder.WriteString(u.DeletedAt.Format(time.ANSIC))
 	builder.WriteByte(')')
 	return builder.String()
+}
+
+// NamedArticles returns the Articles named value or an error if the edge was not
+// loaded in eager-loading with this name.
+func (u *User) NamedArticles(name string) ([]*Article, error) {
+	if u.Edges.namedArticles == nil {
+		return nil, &NotLoadedError{edge: name}
+	}
+	nodes, ok := u.Edges.namedArticles[name]
+	if !ok {
+		return nil, &NotLoadedError{edge: name}
+	}
+	return nodes, nil
+}
+
+func (u *User) appendNamedArticles(name string, edges ...*Article) {
+	if u.Edges.namedArticles == nil {
+		u.Edges.namedArticles = make(map[string][]*Article)
+	}
+	if len(edges) == 0 {
+		u.Edges.namedArticles[name] = []*Article{}
+	} else {
+		u.Edges.namedArticles[name] = append(u.Edges.namedArticles[name], edges...)
+	}
 }
 
 // Users is a parsable slice of User.
