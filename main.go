@@ -42,9 +42,6 @@ func main() {
 		log.Panicf("dial database failed: %v", err)
 	}
 	defer db.Close()
-	db.SetMaxIdleConns(20)
-	db.SetMaxOpenConns(20)
-	db.SetConnMaxLifetime(0)
 
 	client := ent.NewClient(ent.Driver(entsql.OpenDB(dialect.Postgres, db)))
 
